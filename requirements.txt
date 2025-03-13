@@ -1,4 +1,5 @@
-gradio
 torch
 torchvision
-Pillow
+gradio
+pillow
+requests
