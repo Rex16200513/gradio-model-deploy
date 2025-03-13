@@ -6,17 +6,17 @@ from torchvision import transforms
 from PIL import Image
 import json
 import requests
-import os  # 新增：获取 Render 提供的端口号
+import os  
 
 # 获取 ImageNet 1000 个类别的标签
 LABELS_URL = "https://raw.githubusercontent.com/anishathalye/imagenet-simple-labels/master/imagenet-simple-labels.json"
 LABELS = json.loads(requests.get(LABELS_URL).text)
 
-# 加载预训练的 ResNet18 模型
-model = torchvision.models.resnet18(pretrained=True)
+# **修改 ResNet18 加载方式**
+model = torchvision.models.resnet18(weights=torchvision.models.ResNet18_Weights.IMAGENET1K_V1)
 model.eval()
 
-# 图像预处理（与训练时相同）
+# 图像预处理
 transform = transforms.Compose([
     transforms.Resize(256),
     transforms.CenterCrop(224),
@@ -34,11 +34,9 @@ def predict_image(image):
     
     return f"预测类别: {LABELS[predicted_idx]} (置信度: {probabilities[predicted_idx]:.2f})"
 
-# **获取 Render 自动分配的端口**
-PORT = int(os.getenv("PORT", 7860))
+# **确保 Render 分配的端口可用**
+PORT = int(os.getenv("PORT", 8080))  # 8080 更常见
 
-# Gradio 接口
+# **Gradio 服务器绑定 0.0.0.0 并启用 debug**
 iface = gr.Interface(fn=predict_image, inputs=gr.Image(type="pil"), outputs="text")
-
-# **修正端口问题**
-iface.launch(server_name="0.0.0.0", server_port=PORT)
+iface.launch(server_name="0.0.0.0", server_port=PORT, debug=True)
